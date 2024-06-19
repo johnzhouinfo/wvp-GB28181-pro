@@ -66,6 +66,8 @@ media:
     id:
     # [必须修改] zlm服务器的内网IP
     ip: ${ZLM_HOST:127.0.0.1}
+
+    wan_ip: ${ZLM_WAN_IP:}
     # [必须修改] zlm服务器的http.port
     http-port: ${ZLM_PORT:80}
     # [可选] zlm服务器的hook.admin_params=secret
