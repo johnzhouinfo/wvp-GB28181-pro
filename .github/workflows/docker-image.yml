@@ -13,6 +13,7 @@ jobs:
     - name: Check current working directory
       run: |
           pwd
+          ls -l ./docker/wvp
     - name: Save timestamp
       run: |
         TIMESTAMP=$(date +%s)
