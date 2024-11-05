@@ -13,10 +13,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
         
-    - name: Check current working directory
-      run: |
-          pwd
-          ls -l
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.20.4' 
+        
     - name: Save timestamp
       run: |
         TIMESTAMP=$(date +%s)
