@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Check current working directory
+      run: |
+          pwd
     - name: Save timestamp
       run: |
         TIMESTAMP=$(date +%s)
