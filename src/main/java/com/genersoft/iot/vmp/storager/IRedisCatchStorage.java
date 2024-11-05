@@ -5,9 +5,7 @@ import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.bean.MediaInfo;
 import com.genersoft.iot.vmp.media.bean.MediaServer;
-import com.genersoft.iot.vmp.media.event.media.MediaArrivalEvent;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
@@ -24,48 +22,17 @@ public interface IRedisCatchStorage {
      */
     Long getCSEQ();
 
-    void updatePlatformCatchInfo(ParentPlatformCatch parentPlatformCatch);
+    void updatePlatformCatchInfo(PlatformCatch parentPlatformCatch);
 
-    ParentPlatformCatch queryPlatformCatchInfo(String platformGbId);
+    PlatformCatch queryPlatformCatchInfo(String platformGbId);
 
     void delPlatformCatchInfo(String platformGbId);
-
-    void delPlatformKeepalive(String platformGbId);
-
-    void delPlatformRegister(String platformGbId);
 
     void updatePlatformRegisterInfo(String callId, PlatformRegisterInfo platformRegisterInfo);
 
     PlatformRegisterInfo queryPlatformRegisterInfo(String callId);
 
     void delPlatformRegisterInfo(String callId);
-
-    void updateSendRTPSever(SendRtpItem sendRtpItem);
-
-    List<SendRtpItem> querySendRTPServer(String platformGbId, String channelId, String streamId);
-
-    /**
-     * 查询RTP推送信息缓存
-     * @param platformGbId
-     * @param channelId
-     * @return sendRtpItem
-     */
-    SendRtpItem querySendRTPServer(String platformGbId, String channelId, String streamId, String callId);
-
-    List<SendRtpItem> querySendRTPServer(String platformGbId);
-
-    /**
-     * 删除RTP推送信息缓存
-     * @param platformGbId
-     * @param channelId
-     */
-    void deleteSendRTPServer(String platformGbId, String channelId, String callId, String streamId);
-
-    /**
-     * 查询某个通道是否存在上级点播（RTP推送）
-     * @param channelId
-     */
-    boolean isChannelSendingRTP(String channelId);
 
     /**
      * 在redis添加wvp的信息
@@ -127,13 +94,12 @@ public interface IRedisCatchStorage {
     void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo);
 
     GPSMsgInfo getGpsMsgInfo(String gbId);
+
     List<GPSMsgInfo> getAllGpsMsgInfo();
 
-    Long getSN(String method);
-
-    void resetAllSN();
-
     MediaInfo getStreamInfo(String app, String streamId, String mediaServerId);
+
+    MediaInfo getProxyStream(String app, String streamId);
 
     void addCpuInfo(double cpuInfo);
 
@@ -182,10 +148,6 @@ public interface IRedisCatchStorage {
      */
     void sendStreamPushRequestedMsgForStatus();
 
-    List<SendRtpItem> querySendRTPServerByChannelId(String channelId);
-
-    List<SendRtpItem> querySendRTPServerByStream(String stream);
-
     SystemAllInfo getSystemInfo();
 
     int getPushStreamCount(String id);
@@ -196,9 +158,7 @@ public interface IRedisCatchStorage {
 
     void addDiskInfo(List<Map<String, Object>> diskInfo);
 
-    void deleteSendRTPServer(SendRtpItem sendRtpItem);
-
-    List<SendRtpItem> queryAllSendRTPServer();
+    List<SendRtpInfo> queryAllSendRTPServer();
 
     List<Device> getAllDevices();
 
@@ -208,23 +168,23 @@ public interface IRedisCatchStorage {
 
     void sendChannelAddOrDelete(String deviceId, String channelId, boolean add);
 
-    void sendPlatformStartPlayMsg(SendRtpItem sendRtpItem, ParentPlatform platform);
+    void sendPlatformStartPlayMsg(SendRtpInfo sendRtpItem, DeviceChannel channel, Platform platform);
 
-    void sendPlatformStopPlayMsg(SendRtpItem sendRtpItem, ParentPlatform platform);
+    void sendPlatformStopPlayMsg(SendRtpInfo sendRtpItem, Platform platform, CommonGBChannel channel);
 
-    void addPushListItem(String app, String stream, MediaArrivalEvent param);
+    void addPushListItem(String app, String stream, MediaInfo param);
 
-    StreamPushItem getPushListItem(String app, String stream);
+    MediaInfo getPushListItem(String app, String stream);
 
     void removePushListItem(String app, String stream, String mediaServerId);
 
     void sendPushStreamClose(MessageForPushChannel messageForPushChannel);
 
-    void addWaiteSendRtpItem(SendRtpItem sendRtpItem, int platformPlayTimeout);
+    void addWaiteSendRtpItem(SendRtpInfo sendRtpItem, int platformPlayTimeout);
 
-    SendRtpItem getWaiteSendRtpItem(String app, String stream);
+    SendRtpInfo getWaiteSendRtpItem(String app, String stream);
 
-    void sendStartSendRtp(SendRtpItem sendRtpItem);
+    void sendStartSendRtp(SendRtpInfo sendRtpItem);
 
-    void sendPushStreamOnline(SendRtpItem sendRtpItem);
+    void sendPushStreamOnline(SendRtpInfo sendRtpItem);
 }

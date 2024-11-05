@@ -3,14 +3,26 @@
     <div class="page-header">
       <div class="page-title">设备列表</div>
       <div class="page-header-btn">
+        搜索:
+        <el-input @input="getDeviceList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+                  prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
+        在线状态:
+        <el-select size="mini" style="width: 8rem; margin-right: 1rem;" @change="getDeviceList" v-model="online" placeholder="请选择"
+                   default-first-option>
+          <el-option label="全部" value=""></el-option>
+          <el-option label="在线" value="true"></el-option>
+          <el-option label="离线" value="false"></el-option>
+        </el-select>
         <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加设备
+        </el-button>
+        <el-button icon="el-icon-info" size="mini" style="margin-right: 1rem;" type="primary" @click="showInfo">平台信息
         </el-button>
         <el-button icon="el-icon-refresh-right" circle size="mini" :loading="getDeviceListLoading"
                    @click="getDeviceList()"></el-button>
       </div>
     </div>
     <!--设备列表-->
-    <el-table :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header">
+    <el-table size="medium"  :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header">
       <el-table-column prop="name" label="名称" min-width="160">
       </el-table-column>
       <el-table-column prop="deviceId" label="设备编号" min-width="200" >
@@ -55,7 +67,7 @@
 <!--      <el-table-column prop="createTime" label="创建时间"  width="140">-->
 <!--      </el-table-column>-->
 
-      <el-table-column label="操作" min-width="450" fixed="right">
+      <el-table-column label="操作" min-width="380" fixed="right">
         <template slot-scope="scope">
           <el-button type="text" size="medium" v-bind:disabled="scope.row.online==0" icon="el-icon-refresh" @click="refDevice(scope.row)"
                      @mouseover="getTooltipContent(scope.row.deviceId)">刷新
@@ -65,18 +77,26 @@
                      @click="showChannelList(scope.row)">通道
           </el-button>
           <el-divider direction="vertical"></el-divider>
-          <el-button size="medium" icon="el-icon-location" type="text"
-                     @click="showDevicePosition(scope.row)">定位
-          </el-button>
-          <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">编辑</el-button>
           <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-delete" type="text" @click="deleteDevice(scope.row)" style="color: #f56c6c">删除</el-button>
+          <el-divider direction="vertical"></el-divider>
+          <el-dropdown @command="(command)=>{moreClick(command, scope.row)}">
+            <el-button size="medium" type="text" >
+              操作<i class="el-icon-arrow-down el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="setGuard" v-bind:disabled="!scope.row.onLine">
+                布防</el-dropdown-item>
+              <el-dropdown-item command="resetGuard" v-bind:disabled="!scope.row.onLine">
+                撤防</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
         </template>
       </el-table-column>
     </el-table>
     <el-pagination
-      style="float: right"
+      style="text-align: right"
       @size-change="handleSizeChange"
       @current-change="currentChange"
       :current-page="currentPage"
@@ -87,6 +107,7 @@
     </el-pagination>
     <deviceEdit ref="deviceEdit"></deviceEdit>
     <syncChannelProgress ref="syncChannelProgress"></syncChannelProgress>
+    <configInfo ref="configInfo"></configInfo>
   </div>
 </template>
 
@@ -94,10 +115,12 @@
 import uiHeader from '../layout/UiHeader.vue'
 import deviceEdit from './dialog/deviceEdit.vue'
 import syncChannelProgress from './dialog/SyncChannelProgress.vue'
+import configInfo from "./dialog/configInfo.vue";
 
 export default {
   name: 'app',
   components: {
+    configInfo,
     uiHeader,
     deviceEdit,
     syncChannelProgress,
@@ -106,7 +129,8 @@ export default {
     return {
       deviceList: [], //设备列表
       currentDevice: {}, //当前操作设备对象
-
+      searchSrt: "",
+      online: null,
       videoComponentList: [],
       updateLooper: 0, //数据刷新轮训标志
       currentDeviceChannelsLenth: 0,
@@ -157,7 +181,9 @@ export default {
         url: `/api/device/query/devices`,
         params: {
           page: this.currentPage,
-          count: this.count
+          count: this.count,
+          query: this.searchSrt,
+          status: this.online,
         }
       }).then( (res)=> {
         if (res.data.code === 0) {
@@ -220,12 +246,10 @@ export default {
             type: 'error'
           });
         } else {
-          // that.$message({
-          // 	showClose: true,
-          // 	message: res.data.msg,
-          // 	type: 'success'
-          // });
-          this.$refs.syncChannelProgress.openDialog(itemData.deviceId)
+          this.$refs.syncChannelProgress.openDialog(itemData.deviceId, ()=>{
+            console.log(32322)
+            this.initData()
+          })
         }
         that.initData()
       }).catch((e) => {
@@ -292,8 +316,75 @@ export default {
         setTimeout(this.getDeviceList, 200)
 
       })
-    }
+    },
+    showInfo: function (){
 
+      this.$axios({
+        method: 'get',
+        url: `/api/server/system/configInfo`,
+      }).then( (res)=> {
+        console.log(res)
+        if (res.data.code === 0) {
+          console.log(2222)
+          console.log(this.$refs.configInfo)
+          this.$refs.configInfo.openDialog(res.data.data)
+        }
+      }).catch( (error)=> {
+      });
+    },
+    moreClick: function (command, itemData) {
+      if (command === "setGuard") {
+        this.setGuard(itemData)
+      }else if (command === "resetGuard") {
+        this.resetGuard(itemData)
+      }
+    },
+    setGuard: function (itemData) {
+      this.$axios({
+        method: 'get',
+        url: `/api/device/control/guard/${itemData.deviceId}/SetGuard`,
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: "布防成功"
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
+    },
+    resetGuard: function (itemData) {
+      this.$axios({
+        method: 'get',
+        url: `/api/device/control/guard/${itemData.deviceId}/ResetGuard`,
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.$message.success({
+            showClose: true,
+            message: "撤防成功"
+          })
+        }else {
+          this.$message.error({
+            showClose: true,
+            message: res.data.msg
+          })
+        }
+      }).catch( (error)=> {
+        this.$message.error({
+          showClose: true,
+          message: error.message
+        })
+      });
+    },
 
   }
 };
