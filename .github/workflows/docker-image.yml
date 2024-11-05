@@ -10,10 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+        
     - name: Check current working directory
       run: |
           pwd
-          ls -l ..
+          ls -l
     - name: Save timestamp
       run: |
         TIMESTAMP=$(date +%s)
@@ -28,7 +31,7 @@ jobs:
 
     - name: Build and Push Docker image to Docker Hub
       run:  |
-            docker build . --file /docker/wvp/Dockerfile --tag ${{ secrets.DOCKER_USERNAME }}/docker-wvp:$TIMESTAMP --tag ${{ secrets.DOCKER_USERNAME }}/docker-wvp:latest
+            docker build . --file ./docker/wvp/Dockerfile --tag ${{ secrets.DOCKER_USERNAME }}/docker-wvp:$TIMESTAMP --tag ${{ secrets.DOCKER_USERNAME }}/docker-wvp:latest
             docker push ${{ secrets.DOCKER_USERNAME }}/docker-wvp:$TIMESTAMP
             docker push ${{ secrets.DOCKER_USERNAME }}/docker-wvp:latest
     
