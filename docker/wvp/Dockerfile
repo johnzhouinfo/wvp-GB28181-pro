@@ -1,6 +1,6 @@
 FROM ubuntu:20.04   as   build
 
-ARG gitUrl="https://gitee.com/pan648540858"
+ARG gitUrl="https://github.com/johnzhouinfo"
 ARG zlmGitUrl="https://gitee.com/xia-chu/ZLMediaKit"
 
 RUN export DEBIAN_FRONTEND=noninteractive &&\
@@ -10,7 +10,7 @@ RUN export DEBIAN_FRONTEND=noninteractive &&\
         mkdir -p /opt/wvp/config /opt/wvp/heapdump /opt/wvp/config /opt/assist/config /opt/assist/heapdump /opt/media/www/record
 
 RUN cd /home && \
-        git clone "${gitUrl}/maven.git" && \
+        git clone "https://gitee.com/pan648540858/maven.git" && \
         cp maven/settings.xml /usr/share/maven/conf/
 
 RUN cd /home && \
@@ -24,7 +24,7 @@ RUN cd /home/wvp-GB28181-pro && \
         cp /home/wvp-GB28181-pro/src/main/resources/application-docker.yml /opt/wvp/config/application.yml
 
 RUN cd /home && \
-		git clone "${gitUrl}/wvp-pro-assist.git"
+		git clone "https://gitee.com/pan648540858/wvp-pro-assist.git"
 RUN cd /home/wvp-pro-assist && \
 	git reset --hard 58f1a79136a55a7cd1593c95b56ddadcc2225b61 && \
         mvn clean package -Dmaven.test.skip=true && \
